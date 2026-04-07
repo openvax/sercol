@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sercol"
+requires-python = ">=3.9"
+authors = [{name="Alex Rubinsteyn", email="alex.rubinsteyn@unc.edu"}]
+description = "Rich collection class with grouping and filtering helpers"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+]
+readme = "README.md"
+dynamic = ["version", "dependencies"]
+
+[tool.setuptools.dynamic]
+version = {attr = "sercol.__version__"}
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools]
+packages = ["sercol"]
+
+[project.urls]
+"Homepage" = "https://github.com/openvax/sercol"
+"Bug Tracker" = "https://github.com/openvax/sercol/issues"
