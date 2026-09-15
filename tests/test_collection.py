@@ -46,3 +46,24 @@ def test_groupby():
     groups = collection.groupby(lambda x: x[0])
     eq_(len(groups), 2)
     eq_(set(groups.keys()), {"a", "b"})
+
+def test_collection_dict_roundtrip():
+    collection = Collection(["a", "b"], sources={"example.vcf"})
+    state_dict = collection.to_dict()
+    eq_(set(state_dict.keys()), {"elements", "distinct", "sort_key", "sources"})
+    restored = Collection.from_dict(state_dict)
+    eq_(restored, collection)
+    eq_(restored.sources, {"example.vcf"})
+
+def test_collection_json_roundtrip():
+    collection = Collection(["a", "b"], sources={"example.vcf"})
+    restored = Collection.from_json(collection.to_json())
+    eq_(restored.__class__, Collection)
+    eq_(restored, collection)
+    eq_(restored.sources, {"example.vcf"})
+
+def test_collection_to_dataframe():
+    collection = Collection([{"x": 1}, {"x": 2}])
+    df = collection.to_dataframe()
+    eq_(list(df.columns), ["x"])
+    eq_(list(df["x"]), [1, 2])
