@@ -45,3 +45,16 @@ jobs:
           ./test.sh
       - name: Publish coverage to Coveralls
         uses: coverallsapp/github-action@v2.2.3
+        with:
+          flag-name: python-${{ matrix.python-version }}
+          parallel: true
+
+  finish-coverage:
+    needs: build
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize parallel coverage
+        uses: coverallsapp/github-action@v2.2.3
+        with:
+          parallel-finished: true
