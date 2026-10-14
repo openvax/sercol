@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://openvax.github.io/sercol/</loc>
+         <lastmod>2026-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://openvax.github.io/sercol/reference/</loc>
+         <lastmod>2026-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://openvax.github.io/sercol/dev/documentation-style/</loc>
+         <lastmod>2026-10-14</lastmod>
+    </url>
+    <url>
+         <loc>https://openvax.github.io/sercol/guides/collections/</loc>
+         <lastmod>2026-10-14</lastmod>
+    </url>
+</urlset>
