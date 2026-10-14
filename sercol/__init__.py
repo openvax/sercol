@@ -13,6 +13,6 @@
 
 from .collection import Collection
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 __all__ = ["Collection", "__version__"]

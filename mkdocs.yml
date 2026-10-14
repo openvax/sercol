@@ -1,0 +1,52 @@
+site_name: sercol
+site_description: Filter, group and serialize Python collections
+site_url: https://openvax.github.io/sercol/
+repo_url: https://github.com/openvax/sercol
+repo_name: openvax/sercol
+edit_uri: edit/master/docs/
+strict: true
+theme:
+  name: material
+  font: false
+  palette:
+    primary: white
+    accent: blue
+  features:
+  - navigation.indexes
+  - navigation.expand
+  - content.code.copy
+validation:
+  links:
+    not_found: warn
+    unrecognized_links: warn
+    anchors: warn
+plugins:
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths:
+        - .
+        options:
+          docstring_style: numpy
+          show_root_heading: true
+          show_root_full_path: false
+          show_source: false
+          separate_signature: true
+          heading_level: 2
+          docstring_section_style: list
+          members_order: source
+markdown_extensions:
+- tables
+- toc:
+    permalink: true
+- pymdownx.superfences
+extra_css:
+- stylesheets/docs.css
+nav:
+- Home: index.md
+- Common tasks:
+  - Select, order and track values: guides/collections.md
+- API reference: reference.md
+- Contributing:
+  - Documentation style: dev/documentation-style.md
