@@ -8,14 +8,17 @@
 
 # sercol
 
-Rich collection class with grouping and filtering helpers. Used as a base class
-for `varcode.EffectCollection`, `varcode.VariantCollection`, and `mhctools.EpitopeCollection`.
+Filter and group a collection while keeping its collection type and source
+metadata. `Collection` is the base class for `varcode.VariantCollection`,
+`varcode.EffectCollection` and `mhctools.BindingPredictionCollection`.
 
 ## Install and filter
 
 ```sh
 python -m pip install sercol
 ```
+
+Python 3.9 or later is required.
 
 ```python
 from sercol import Collection
@@ -25,6 +28,11 @@ print(list(values.filter(lambda value: value >= 3)))
 # [5, 3]
 ```
 
-[Home and grouping example](docs/index.md) · [Common tasks](docs/guides/collections.md) · [API reference](docs/reference.md)
+## Documentation
 
-Build the site with `python -m pip install -r requirements-docs.txt` and `./docs.sh`.
+- [Group values, save and reload](docs/index.md)
+- [Select, order and track values](docs/guides/collections.md)
+- [API reference](docs/reference.md)
+
+To build the documentation locally, run
+`python -m pip install -r requirements-docs.txt` and `./docs.sh`.
