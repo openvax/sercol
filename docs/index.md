@@ -10,7 +10,7 @@ for variants, effects and predictions.
 python -m pip install sercol
 ```
 
-Python 3.9 or later is required.
+Python 3.11 or later is required.
 
 ## Filter and group values
 

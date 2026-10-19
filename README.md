@@ -18,7 +18,7 @@ metadata. `Collection` is the base class for `varcode.VariantCollection`,
 python -m pip install sercol
 ```
 
-Python 3.9 or later is required.
+Python 3.11 or later is required.
 
 ```python
 from sercol import Collection
