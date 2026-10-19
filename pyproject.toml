@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sercol"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [{name="Alex Rubinsteyn", email="alex.rubinsteyn@unc.edu"}]
 description = "Rich collection class with grouping and filtering helpers"
 classifiers = [
@@ -13,6 +13,10 @@ classifiers = [
     "Operating System :: OS Independent",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 readme = "README.md"
 dynamic = ["version", "dependencies"]
