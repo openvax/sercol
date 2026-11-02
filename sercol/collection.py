@@ -52,6 +52,20 @@ class Collection(serializable.Serializable):
         self.sources = sources
 
     def to_dict(self):
+        """
+        Return the constructor arguments needed to rebuild this Collection.
+
+        Returns
+        -------
+        dict
+            ``elements``, ``distinct``, ``sort_key`` and ``sources``.
+
+        Raises
+        ------
+        ValueError
+            If called on a subclass, which must define its own ``to_dict``
+            because its constructor takes different arguments.
+        """
         if self.__class__ is not Collection:
             raise ValueError(
                 "Derived class %s should implement own to_dict()" % (
@@ -63,9 +77,29 @@ class Collection(serializable.Serializable):
             sources=self.sources)
 
     def to_dataframe(self):
+        """
+        Build a table with one row per element.
+
+        Each element is converted with ``serializable.to_dict``, so elements
+        must be dicts, objects with a ``to_dict`` method (such as
+        ``Serializable`` instances), or objects whose attributes match their
+        constructor arguments.
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
         return pd.DataFrame.from_records([serializable.to_dict(x) for x in self])
 
     def to_csv(self, path):
+        """
+        Write ``to_dataframe()`` to a CSV file, including its index column.
+
+        Parameters
+        ----------
+        path : str or path-like
+            Destination file; an existing file is overwritten.
+        """
         return self.to_dataframe().to_csv(path)
 
     def clone_with_new_elements(
@@ -79,6 +113,27 @@ class Collection(serializable.Serializable):
         possibly different entries. Extra parameters to control which keyword
         arguments get passed to the initializer are necessary since derived
         classes have different constructors than the base class.
+
+        Parameters
+        ----------
+        new_elements : list
+            Elements of the new collection.
+
+        drop_keywords : set of str
+            Base-class constructor arguments (``distinct``, ``sort_key``,
+            ``sources``) to leave out.
+
+        rename_dict : dict
+            Maps base-class argument names to the names the subclass
+            constructor uses.
+
+        extra_kwargs : dict
+            Additional constructor arguments, applied last.
+
+        Returns
+        -------
+        Collection
+            A new instance of ``self.__class__``.
         """
         kwargs = dict(
             elements=new_elements,
@@ -107,24 +162,25 @@ class Collection(serializable.Serializable):
     @property
     def path(self):
         """
-        Alternative name for VariantCollection.source maintained for backward
-        compatibility.
+        Alternative name for ``source``, maintained for backward compatibility.
         """
         return self.source
 
     @property
     def filenames(self):
         """
-        Assuming sources are paths to VCF or MAF files, trim their directory
-        path and return just the file names.
+        Base names of the non-empty sources, assuming they are file paths
+        (for example VCF or MAF files).
         """
         return [os.path.basename(source) for source in self.sources if source]
 
     @property
     def filename(self):
         """
-        Return single filename if there is a single non-empty source.
-        Keeping this property for backward compatibility.
+        First entry of ``filenames`` (the only one when there is a single
+        source), kept for backward compatibility.
+
+        Raises IndexError when the collection has no non-empty source.
         """
         return self.filenames[0]
 
@@ -184,6 +240,20 @@ class Collection(serializable.Serializable):
             all(x == y for (x, y) in zip(self, other)))
 
     def filter(self, filter_fn):
+        """
+        Keep the elements for which ``filter_fn`` returns a true value.
+
+        Parameters
+        ----------
+        filter_fn : callable
+            Takes one element and returns a truthy or falsy value.
+
+        Returns
+        -------
+        Collection
+            A collection of the same class, built with
+            ``clone_with_new_elements``.
+        """
         return self.clone_with_new_elements([
             element
             for element in self.elements
@@ -191,10 +261,18 @@ class Collection(serializable.Serializable):
 
     def groupby(self, key_fn):
         """
+        Group elements by the key ``key_fn`` returns for each.
+
         Parameters
         ----------
-        key_fn : function
-            Takes an effect or variant, returns a grouping key.
+        key_fn : callable
+            Takes one element and returns a hashable grouping key.
+
+        Returns
+        -------
+        dict
+            Maps each key to a collection of the same class holding that
+            key's elements, in their original order.
         """
         result_dict = defaultdict(list)
 
@@ -210,8 +288,18 @@ class Collection(serializable.Serializable):
 
     def multi_groupby(self, key_fn):
         """
-        Like a groupby but expect the key_fn to return multiple keys for
-        each element.
+        Like ``groupby``, but ``key_fn`` returns several keys for each element,
+        and the element is added to the group for every one of them.
+
+        Parameters
+        ----------
+        key_fn : callable
+            Takes one element and returns an iterable of hashable keys.
+
+        Returns
+        -------
+        dict
+            Maps each key to a collection of the same class.
         """
         result_dict = defaultdict(list)
 
@@ -232,10 +320,10 @@ class Collection(serializable.Serializable):
             value_dict,
             threshold,
             default_value=0.0):
-        """The code for filtering by gene or transcript expression was pretty
-        much identical aside from which identifier you pull off an effect.
-        So, factored out the common operations for filtering an effect
-        collection into this helper method.
+        """Keep elements whose looked-up value is above a threshold.
+
+        For example, keep variant effects whose gene expression is above a
+        cutoff.
 
         Parameters
         ----------
@@ -243,7 +331,7 @@ class Collection(serializable.Serializable):
             Given an element of this collection, returns a key into `value_dict`
 
         value_dict : dict
-            Dict from keys returned by `extract_key_fn` to float values
+            Dict from keys returned by `key_fn` to float values
 
         threshold : float
             Only keep elements whose value in `value_dict` is above this
@@ -251,6 +339,11 @@ class Collection(serializable.Serializable):
 
         default_value : float
             Value to use for elements whose key is not in `value_dict`
+
+        Returns
+        -------
+        Collection
+            A collection of the same class, as ``filter`` returns.
         """
         def filter_fn(x):
             key = key_fn(x)
@@ -275,7 +368,7 @@ class Collection(serializable.Serializable):
             into `value_dict`
 
         value_dict : dict
-            Dict from keys returned by `extract_key_fn` to float values
+            Dict from keys returned by `multi_key_fn` to float values
 
         threshold : float
             Only keep elements whose value in `value_dict` is above this
@@ -283,6 +376,11 @@ class Collection(serializable.Serializable):
 
         default_value : float
             Value to use for elements whose key is not in `value_dict`
+
+        Returns
+        -------
+        Collection
+            A collection of the same class, as ``filter`` returns.
         """
         def filter_fn(x):
             for key in multi_key_fn(x):
