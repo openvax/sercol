@@ -271,8 +271,9 @@ class Collection(serializable.Serializable):
         Returns
         -------
         dict
-            Maps each key to a collection of the same class holding that
-            key's elements, in their original order.
+            Maps each key to a collection of the same class, built with
+            ``clone_with_new_elements`` from that key's elements in
+            iteration order (so ``distinct`` and ``sort_key`` still apply).
         """
         result_dict = defaultdict(list)
 
