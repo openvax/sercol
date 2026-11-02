@@ -1,5 +1,10 @@
 # Select, order and track values
 
+This guide covers the `Collection` options beyond plain filtering and
+grouping: removing duplicates, sorting, selecting by looked-up values,
+putting one element in several groups, recording sources, and writing a
+subclass.
+
 ## Remove duplicates and sort
 
 ```python
