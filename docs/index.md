@@ -33,8 +33,8 @@ print({key: list(group) for key, group in groups.items()})
 ```
 
 `filter()` returns a collection; `groupby()` returns a dictionary of
-collections. Both preserve the original collection class and constructor state.
-The original collection is unchanged.
+collections. Both keep the original collection class and its `distinct`,
+`sort_key` and `sources`. The original collection is unchanged.
 
 ## Save and reload
 

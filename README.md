@@ -38,8 +38,8 @@ print({key: list(group) for key, group in groups.items()})
 ```
 
 `filter()` returns a new collection and `groupby()` a dictionary of
-collections, each of the original class with the same constructor state. The
-original collection is unchanged.
+collections, each of the original class with the same `distinct`, `sort_key`
+and `sources`. The original collection is unchanged.
 
 ## Documentation
 
