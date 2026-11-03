@@ -69,6 +69,10 @@ results.csv
 `sources` labels where values came from; it does not open those files.
 `source` requires exactly one source. `filenames` strips directory components.
 
+Without `sources`, each collection starts with its own empty set. A collection
+returned by `filter()` or `groupby()` shares its parent's set, so add to
+`sources` before deriving collections from it.
+
 ## Extend the collection
 
 A subclass should accept the state passed by `clone_with_new_elements()`:

@@ -25,7 +25,7 @@ class Collection(serializable.Serializable):
             elements,
             distinct=False,
             sort_key=None,
-            sources=set([])):
+            sources=None):
         """
         Parameters
         ----------
@@ -38,8 +38,9 @@ class Collection(serializable.Serializable):
         sort_key : fn
             Function which maps each element to a sorting criterion.
 
-        sources : set
-            Set of files from which this collection was generated.
+        sources : set, optional
+            Set of files from which this collection was generated. Defaults
+            to a new empty set for each collection.
         """
         self.distinct = distinct
         if distinct:
@@ -49,7 +50,7 @@ class Collection(serializable.Serializable):
             self.elements = elements
         else:
             self.elements = sorted(elements, key=sort_key)
-        self.sources = sources
+        self.sources = set() if sources is None else sources
 
     def to_dict(self):
         if self.__class__ is not Collection:
@@ -71,9 +72,9 @@ class Collection(serializable.Serializable):
     def clone_with_new_elements(
             self,
             new_elements,
-            drop_keywords=set([]),
-            rename_dict={},
-            extra_kwargs={}):
+            drop_keywords=None,
+            rename_dict=None,
+            extra_kwargs=None):
         """
         Create another Collection of the same class and with same state but
         possibly different entries. Extra parameters to control which keyword
@@ -85,11 +86,11 @@ class Collection(serializable.Serializable):
             distinct=self.distinct,
             sort_key=self.sort_key,
             sources=self.sources)
-        for name in drop_keywords:
+        for name in drop_keywords or ():
             kwargs.pop(name)
-        for old_name, new_name in rename_dict.items():
+        for old_name, new_name in (rename_dict or {}).items():
             kwargs[new_name] = kwargs.pop(old_name)
-        kwargs.update(extra_kwargs)
+        kwargs.update(extra_kwargs or {})
         return self.__class__(**kwargs)
 
     @property
