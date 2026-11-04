@@ -18,7 +18,7 @@ for [varcode](https://github.com/openvax/varcode)'s `VariantCollection` and
 python -m pip install sercol
 ```
 
-sercol needs Python 3.11 or later; it installs serializable and pandas.
+sercol needs Python 3.11 or later; it installs serializable and pandas 3.
 
 ## Quick start
 
