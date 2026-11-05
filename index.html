@@ -611,9 +611,12 @@
 
 
 <h1 id="sercol">sercol<a class="headerlink" href="#sercol" title="Permanent link">&para;</a></h1>
-<p>Filter and group a collection while keeping its collection type and source
-metadata. <code>Collection</code> is also the base class used by several OpenVax libraries
-for variants, effects and predictions.</p>
+<p>sercol provides <code>Collection</code>, a sequence that filters and groups while keeping
+its collection type and source metadata, and saves to JSON through
+<a href="https://github.com/openvax/serializable">serializable</a>. It is the base class
+for <a href="https://github.com/openvax/varcode">varcode</a>'s <code>VariantCollection</code> and
+<code>EffectCollection</code> and <a href="https://github.com/openvax/mhctools">mhctools</a>'
+<code>BindingPredictionCollection</code>, so their filtering and grouping behave the same.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>sercol
 </code></pre></div>
@@ -631,8 +634,8 @@ for variants, effects and predictions.</p>
 {1: [5, 3], 0: [2, 2]}
 </code></pre></div>
 <p><code>filter()</code> returns a collection; <code>groupby()</code> returns a dictionary of
-collections. Both preserve the original collection class and constructor state.
-The original collection is unchanged.</p>
+collections. Both keep the original collection class and its <code>distinct</code>,
+<code>sort_key</code> and <code>sources</code>. The original collection is unchanged.</p>
 <h2 id="save-and-reload">Save and reload<a class="headerlink" href="#save-and-reload" title="Permanent link">&para;</a></h2>
 <p>Continuing with <code>values</code> above:</p>
 <div class="highlight"><pre><span></span><code><span class="n">restored</span> <span class="o">=</span> <span class="n">Collection</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
