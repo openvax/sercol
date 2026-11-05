@@ -1,5 +1,8 @@
 # Collection reference
 
+The full `Collection` API, after a task index. The
+[guide](guides/collections.md) shows the common methods in use.
+
 | Task | Method |
 | --- | --- |
 | Keep matching elements | `filter()` |

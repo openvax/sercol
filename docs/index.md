@@ -1,8 +1,11 @@
 # sercol
 
-Filter and group a collection while keeping its collection type and source
-metadata. `Collection` is also the base class used by several OpenVax libraries
-for variants, effects and predictions.
+sercol provides `Collection`, a sequence that filters and groups while keeping
+its collection type and source metadata, and saves to JSON through
+[serializable](https://github.com/openvax/serializable). It is the base class
+for [varcode](https://github.com/openvax/varcode)'s `VariantCollection` and
+`EffectCollection` and [mhctools](https://github.com/openvax/mhctools)'
+`BindingPredictionCollection`, so their filtering and grouping behave the same.
 
 ## Install
 
@@ -30,8 +33,8 @@ print({key: list(group) for key, group in groups.items()})
 ```
 
 `filter()` returns a collection; `groupby()` returns a dictionary of
-collections. Both preserve the original collection class and constructor state.
-The original collection is unchanged.
+collections. Both keep the original collection class and its `distinct`,
+`sort_key` and `sources`. The original collection is unchanged.
 
 ## Save and reload
 
