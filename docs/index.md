@@ -13,7 +13,7 @@ for [varcode](https://github.com/openvax/varcode)'s `VariantCollection` and
 python -m pip install sercol
 ```
 
-Python 3.11 or later is required.
+Python 3.11 or later is required; pip installs serializable and pandas 3.
 
 ## Filter and group values
 
