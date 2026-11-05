@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -472,6 +472,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sercol.Collection.to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.to_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dataframe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.to_csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sercol.Collection.clone_with_new_elements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -498,6 +531,17 @@
     <span class="md-ellipsis">
       
         to_string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter
       
     </span>
   </a>
@@ -743,6 +787,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sercol.Collection.to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.to_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dataframe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.to_csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sercol.Collection.clone_with_new_elements" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -769,6 +846,17 @@
     <span class="md-ellipsis">
       
         to_string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter
       
     </span>
   </a>
@@ -964,8 +1052,7 @@ otherwise raises an error.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Alternative name for VariantCollection.source maintained for backward
-compatibility.</p>
+        <p>Alternative name for <code>source</code>, maintained for backward compatibility.</p>
 
     </div>
 
@@ -989,8 +1076,8 @@ compatibility.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Assuming sources are paths to VCF or MAF files, trim their directory
-path and return just the file names.</p>
+        <p>Base names of the non-empty sources, assuming they are file paths
+(for example VCF or MAF files).</p>
 
     </div>
 
@@ -1014,8 +1101,9 @@ path and return just the file names.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Return single filename if there is a single non-empty source.
-Keeping this property for backward compatibility.</p>
+        <p>First entry of <code>filenames</code> (the only one when there is a single
+source), kept for backward compatibility.</p>
+<p>Raises IndexError when the collection has no non-empty source.</p>
 
     </div>
 
@@ -1089,6 +1177,125 @@ Keeping this property for backward compatibility.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="sercol.Collection.to_dict" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_dict</span>
+
+
+<a href="#sercol.Collection.to_dict" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_dict</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the constructor arguments needed to rebuild this Collection.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="dict">dict</span></code>
+          –
+          <div class="doc-md-description">
+            <p><code>elements</code>, <code>distinct</code>, <code>sort_key</code> and <code>sources</code>.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="ValueError">ValueError</span></code>
+            –
+          <div class="doc-md-description">
+            <p>If called on a subclass, which must define its own <code>to_dict</code>
+because its constructor takes different arguments.</p>
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sercol.Collection.to_dataframe" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_dataframe</span>
+
+
+<a href="#sercol.Collection.to_dataframe" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_dataframe</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Build a table with one row per element.</p>
+<p>Each element is converted with <code>serializable.to_dict</code>, so elements
+must be dicts, objects with a <code>to_dict</code> method (such as
+<code>Serializable</code> instances), or objects whose attributes match their
+constructor arguments.</p>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="pandas.DataFrame">DataFrame</span></code>
+          –
+          <div class="doc-md-description">
+            
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sercol.Collection.to_csv" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_csv</span>
+
+
+<a href="#sercol.Collection.to_csv" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Write <code>to_dataframe()</code> to a CSV file, including its index column.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>path</code></b>
+              (<code><span title="str">str</span> or <a class="autorefs autorefs-internal" title="path
+
+
+  
+      property
+   (sercol.collection.Collection.path)" href="#sercol.Collection.path">path</a> - <span title="like">like</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Destination file; an existing file is overwritten.</p>
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="sercol.Collection.clone_with_new_elements" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">clone_with_new_elements</span>
 
@@ -1103,6 +1310,63 @@ Keeping this property for backward compatibility.</p>
 possibly different entries. Extra parameters to control which keyword
 arguments get passed to the initializer are necessary since derived
 classes have different constructors than the base class.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>new_elements</code></b>
+              (<code><span title="list">list</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Elements of the new collection.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>drop_keywords</code></b>
+              (<code>set of str</code>, default:
+                  <code><span title="set">set</span>([])</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Base-class constructor arguments (<code>distinct</code>, <code>sort_key</code>,
+<code>sources</code>) to leave out.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>rename_dict</code></b>
+              (<code><span title="dict">dict</span></code>, default:
+                  <code>{}</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Maps base-class argument names to the names the subclass
+constructor uses.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>extra_kwargs</code></b>
+              (<code><span title="dict">dict</span></code>, default:
+                  <code>{}</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Additional constructor arguments, applied last.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-internal" title="Collection (sercol.collection.Collection)" href="#sercol.Collection">Collection</a></code>
+          –
+          <div class="doc-md-description">
+            <p>A new instance of <code>self.__class__</code>.</p>
+          </div>
+        </li>
+    </ul>
 
 
     </div>
@@ -1154,6 +1418,52 @@ collection elements.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="sercol.Collection.filter" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">filter</span>
+
+
+<a href="#sercol.Collection.filter" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">filter</span><span class="p">(</span><span class="n">filter_fn</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Keep the elements for which <code>filter_fn</code> returns a true value.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>filter_fn</code></b>
+              (<code><span title="callable">callable</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Takes one element and returns a truthy or falsy value.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-internal" title="Collection (sercol.collection.Collection)" href="#sercol.Collection">Collection</a></code>
+          –
+          <div class="doc-md-description">
+            <p>A collection of the same class, built with
+<code>clone_with_new_elements</code>.</p>
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="sercol.Collection.groupby" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">groupby</span>
 
@@ -1164,16 +1474,31 @@ collection elements.</p>
 
     <div class="doc doc-contents ">
 
+        <p>Group elements by the key <code>key_fn</code> returns for each.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
     <ul>
         <li class="doc-section-item field-body">
             <b><code>key_fn</code></b>
-              (<code><span title="function">function</span></code>)
+              (<code><span title="callable">callable</span></code>)
           –
           <div class="doc-md-description">
-            <p>Takes an effect or variant, returns a grouping key.</p>
+            <p>Takes one element and returns a hashable grouping key.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="dict">dict</span></code>
+          –
+          <div class="doc-md-description">
+            <p>Maps each key to a collection of the same class, built with
+<code>clone_with_new_elements</code> from that key's elements in
+iteration order (so <code>distinct</code> and <code>sort_key</code> still apply).</p>
           </div>
         </li>
     </ul>
@@ -1196,8 +1521,33 @@ collection elements.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Like a groupby but expect the key_fn to return multiple keys for
-each element.</p>
+        <p>Like <code>groupby</code>, but <code>key_fn</code> returns several keys for each element,
+and the element is added to the group for every one of them.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>key_fn</code></b>
+              (<code><span title="callable">callable</span></code>)
+          –
+          <div class="doc-md-description">
+            <p>Takes one element and returns an iterable of hashable keys.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="dict">dict</span></code>
+          –
+          <div class="doc-md-description">
+            <p>Maps each key to a collection of the same class.</p>
+          </div>
+        </li>
+    </ul>
 
 
     </div>
@@ -1217,10 +1567,9 @@ each element.</p>
 
     <div class="doc doc-contents ">
 
-        <p>The code for filtering by gene or transcript expression was pretty
-much identical aside from which identifier you pull off an effect.
-So, factored out the common operations for filtering an effect
-collection into this helper method.</p>
+        <p>Keep elements whose looked-up value is above a threshold.</p>
+<p>For example, keep variant effects whose gene expression is above a
+cutoff.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1238,7 +1587,7 @@ collection into this helper method.</p>
               (<code><span title="dict">dict</span></code>)
           –
           <div class="doc-md-description">
-            <p>Dict from keys returned by <code>extract_key_fn</code> to float values</p>
+            <p>Dict from keys returned by <code>key_fn</code> to float values</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -1258,6 +1607,18 @@ threshold.</p>
           –
           <div class="doc-md-description">
             <p>Value to use for elements whose key is not in <code>value_dict</code></p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-internal" title="Collection (sercol.collection.Collection)" href="#sercol.Collection">Collection</a></code>
+          –
+          <div class="doc-md-description">
+            <p>A collection of the same class, as <code>filter</code> returns.</p>
           </div>
         </li>
     </ul>
@@ -1301,7 +1662,7 @@ into <code>value_dict</code></p>
               (<code><span title="dict">dict</span></code>)
           –
           <div class="doc-md-description">
-            <p>Dict from keys returned by <code>extract_key_fn</code> to float values</p>
+            <p>Dict from keys returned by <code>multi_key_fn</code> to float values</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -1321,6 +1682,18 @@ threshold.</p>
           –
           <div class="doc-md-description">
             <p>Value to use for elements whose key is not in <code>value_dict</code></p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Returns:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><a class="autorefs autorefs-internal" title="Collection (sercol.collection.Collection)" href="#sercol.Collection">Collection</a></code>
+          –
+          <div class="doc-md-description">
+            <p>A collection of the same class, as <code>filter</code> returns.</p>
           </div>
         </li>
     </ul>
@@ -1386,10 +1759,10 @@ threshold.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>
