@@ -36,3 +36,15 @@ print(list(values.filter(lambda value: value >= 3)))
 
 To build the documentation locally, run
 `python -m pip install -r requirements-docs.txt` and `./docs.sh`.
+
+## Development
+
+```sh
+python -m pip install -e . pytest pytest-cov ruff
+./lint.sh   # ruff check
+./test.sh   # pytest with coverage
+```
+
+## License
+
+Apache 2.0; see [LICENSE](LICENSE).
