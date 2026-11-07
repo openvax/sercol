@@ -53,6 +53,27 @@ def test_groupby():
     eq_(set(groups.keys()), {"a", "b"})
 
 
+def test_distinct_without_sort_key_keeps_first_occurrences_in_order():
+    collection = Collection([3, 1, 2, 1, 3], distinct=True)
+    eq_(collection.elements, [3, 1, 2])
+    eq_(collection[0], 3)
+    eq_(str(collection), "<Collection with 3 elements>\n  -- 3\n  -- 1\n  -- 2")
+    eq_(repr(collection), str(collection))
+
+
+def test_distinct_without_sort_key_filter_and_groupby():
+    collection = Collection(["b", "a", "b", "c"], distinct=True)
+    eq_(collection.filter(lambda x: x != "c").elements, ["b", "a"])
+    groups = collection.groupby(lambda x: x == "a")
+    eq_(groups[False].elements, ["b", "c"])
+    eq_(groups[True].elements, ["a"])
+
+
+def test_distinct_with_sort_key_keeps_input_order_of_ties():
+    collection = Collection([-2, 2, 3, -2], distinct=True, sort_key=abs)
+    eq_(collection.elements, [-2, 2, 3])
+
+
 def test_collection_dict_roundtrip():
     collection = Collection(["a", "b"], sources={"example.vcf"})
     state_dict = collection.to_dict()
