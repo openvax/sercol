@@ -669,8 +669,9 @@ subclass.</p>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>[2, 3, 5]
 </code></pre></div>
-<p><code>distinct=True</code> uses a set, so elements must be hashable and their input order
-is not retained. Supply <code>sort_key</code> when you need a predictable order.</p>
+<p><code>distinct=True</code> keeps the first occurrence of each element, in input order, so
+elements must be hashable. <code>sort_key</code> then sorts what remains; elements with
+equal keys keep their input order.</p>
 <h2 id="select-by-a-value-lookup">Select by a value lookup<a class="headerlink" href="#select-by-a-value-lookup" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">scores</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"alpha"</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">"beta"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
 <span class="n">names</span> <span class="o">=</span> <span class="n">Collection</span><span class="p">([</span><span class="s2">"alpha"</span><span class="p">,</span> <span class="s2">"beta"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">])</span>
