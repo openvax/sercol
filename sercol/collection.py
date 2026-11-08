@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
 import os.path
 from collections import defaultdict
 
@@ -53,7 +54,12 @@ class Collection(serializable.Serializable):
 
     def to_dict(self):
         """
-        Return the constructor arguments needed to rebuild this Collection.
+        Return the constructor arguments needed to rebuild this collection.
+
+        This also serves subclasses whose constructor takes the same
+        arguments, such as one that inherits ``Collection.__init__``, so they
+        can be pickled, copied and saved as JSON without their own
+        ``to_dict``.
 
         Returns
         -------
@@ -63,18 +69,19 @@ class Collection(serializable.Serializable):
         Raises
         ------
         ValueError
-            If called on a subclass, which must define its own ``to_dict``
-            because its constructor takes different arguments.
+            If this object's class has a constructor with other arguments.
+            Such a subclass must define its own ``to_dict``.
         """
-        if self.__class__ is not Collection:
-            raise ValueError(
-                "Derived class %s should implement own to_dict()" % (
-                    self.__class__.__name__,))
-        return dict(
+        state = dict(
             elements=self.elements,
             distinct=self.distinct,
             sort_key=self.sort_key,
             sources=self.sources)
+        if set(inspect.signature(type(self)).parameters) != set(state):
+            raise ValueError(
+                "%s takes different constructor arguments than Collection, "
+                "so it must define its own to_dict()" % type(self).__name__)
+        return state
 
     def to_dataframe(self):
         """

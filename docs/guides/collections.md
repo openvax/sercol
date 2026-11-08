@@ -78,6 +78,9 @@ results.csv
 
 A subclass should accept the state passed by `clone_with_new_elements()`:
 `elements`, `distinct`, `sort_key` and `sources`, or override that cloning
-operation. Implement its own `to_dict()` with constructor-compatible keys to
-support serialization. `Collection.to_dict()` deliberately rejects subclasses
-that have not supplied their own implementation.
+operation. A subclass whose constructor takes exactly those arguments, for
+example one that inherits `Collection.__init__`, can be pickled, copied and
+saved as JSON as it is. A subclass whose constructor takes other arguments
+must implement its own `to_dict()` returning them; `Collection.to_dict()`
+raises `ValueError` for it rather than return state its constructor cannot
+accept.
