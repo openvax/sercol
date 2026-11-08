@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -1189,7 +1189,11 @@ source), kept for backward compatibility.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Return the constructor arguments needed to rebuild this Collection.</p>
+        <p>Return the constructor arguments needed to rebuild this collection.</p>
+<p>This also serves subclasses whose constructor takes the same
+arguments, such as one that inherits <code>Collection.__init__</code>, so they
+can be pickled, copied and saved as JSON without their own
+<code>to_dict</code>.</p>
 
 
 <p><span class="doc-section-title">Returns:</span></p>
@@ -1210,8 +1214,8 @@ source), kept for backward compatibility.</p>
               <code><span title="ValueError">ValueError</span></code>
             –
           <div class="doc-md-description">
-            <p>If called on a subclass, which must define its own <code>to_dict</code>
-because its constructor takes different arguments.</p>
+            <p>If this object's class has a constructor with other arguments.
+Such a subclass must define its own <code>to_dict</code>.</p>
           </div>
         </li>
     </ul>
@@ -1764,7 +1768,7 @@ threshold.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
