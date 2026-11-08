@@ -18,8 +18,9 @@ print(list(values))
 [2, 3, 5]
 ```
 
-`distinct=True` uses a set, so elements must be hashable and their input order
-is not retained. Supply `sort_key` when you need a predictable order.
+`distinct=True` keeps the first occurrence of each element, in input order, so
+elements must be hashable. `sort_key` then sorts what remains; elements with
+equal keys keep their input order.
 
 ## Select by a value lookup
 

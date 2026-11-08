@@ -34,7 +34,8 @@ class Collection(serializable.Serializable):
             Collection of any class which  is compatible with the sort key
 
         distinct : bool
-            Only keep distinct entries or allow duplicates.
+            Keep only the first occurrence of each element (elements must
+            be hashable) or allow duplicates.
 
         sort_key : fn
             Function which maps each element to a sorting criterion.
@@ -44,7 +45,7 @@ class Collection(serializable.Serializable):
         """
         self.distinct = distinct
         if distinct:
-            elements = set(elements)
+            elements = list(dict.fromkeys(elements))
         self.sort_key = sort_key
         if self.sort_key is None:
             self.elements = elements
