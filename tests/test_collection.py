@@ -14,7 +14,9 @@
 Test methods shared by both VariantCollection and EffectCollection
 """
 
-from .common import eq_, neq_
+import pytest
+
+from .common import eq_, neq_, ok_
 from sercol import Collection
 
 
@@ -96,3 +98,36 @@ def test_collection_to_dataframe():
     df = collection.to_dataframe()
     eq_(list(df.columns), ["x"])
     eq_(list(df["x"]), [1, 2])
+
+
+def test_default_sources_not_shared():
+    a = Collection([1])
+    b = Collection([2])
+    ok_(a.sources is not b.sources, "default sources should be per-instance")
+
+
+def test_mutating_sources_does_not_leak():
+    a = Collection([1])
+    a.sources.add("a.vcf")
+    eq_(Collection([2]).sources, set())
+
+
+def test_init_has_no_mutable_default():
+    defaults = Collection.__init__.__defaults__
+    ok_(not any(isinstance(value, set) for value in defaults))
+
+
+def test_explicit_sources_kept():
+    sources = {"x.vcf"}
+    collection = Collection([1], sources=sources)
+    ok_(collection.sources is sources, "explicit sources should not be copied")
+
+
+def test_source_raises_without_sources():
+    with pytest.raises(ValueError):
+        Collection([1]).source
+
+
+def test_filter_keeps_sources():
+    collection = Collection([1, 2, 3], sources={"r.csv"})
+    eq_(collection.filter(lambda x: x > 1).source, "r.csv")
