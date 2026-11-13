@@ -14,6 +14,8 @@
 Test methods shared by both VariantCollection and EffectCollection
 """
 
+import pytest
+
 from .common import eq_, neq_
 from sercol import Collection
 
@@ -96,3 +98,194 @@ def test_collection_to_dataframe():
     df = collection.to_dataframe()
     eq_(list(df.columns), ["x"])
     eq_(list(df["x"]), [1, 2])
+
+
+def named_sort_key(x):
+    return -x
+
+
+def test_default_sources_are_not_shared():
+    first = Collection([1])
+    second = Collection([2])
+    first.sources.add("x.vcf")
+    eq_(second.sources, set())
+    eq_(Collection([3]).sources, set())
+
+
+def test_sources_are_copied_from_the_argument():
+    sources = {"a.vcf"}
+    collection = Collection([1], sources=sources)
+    clone = collection.filter(lambda x: True)
+    sources.add("b.vcf")
+    clone.sources.add("c.vcf")
+    eq_(collection.sources, {"a.vcf"})
+    eq_(clone.sources, {"a.vcf", "c.vcf"})
+
+
+def test_sources_accepts_none_string_and_list():
+    eq_(Collection([1], sources=None).sources, set())
+    eq_(Collection([1], sources="a.vcf").sources, {"a.vcf"})
+    eq_(Collection([1], sources=["a.vcf", "b.vcf"]).sources, {"a.vcf", "b.vcf"})
+
+
+def test_elements_from_iterator():
+    collection = Collection(iter([1, 2, 3]))
+    eq_(len(collection), 3)
+    eq_(list(collection), [1, 2, 3])
+    eq_(list(collection), [1, 2, 3])
+    eq_(collection[0], 1)
+    eq_(len(Collection(x for x in "ab")), 2)
+
+
+def test_elements_are_copied_from_the_argument():
+    elements = [1, 2]
+    collection = Collection(elements)
+    elements.append(3)
+    eq_(list(collection), [1, 2])
+
+
+def test_json_rejects_lambda_sort_key():
+    collection = Collection([3, 1, 2], sort_key=lambda x: x)
+    with pytest.raises(ValueError, match="sort_key"):
+        collection.to_json()
+
+    def nested(x):
+        return x
+
+    with pytest.raises(ValueError, match="sort_key"):
+        Collection([3, 1, 2], sort_key=nested).to_json()
+
+
+def test_json_rejects_lambda_sort_key_when_writing_file(tmp_path):
+    collection = Collection([3, 1, 2], sort_key=lambda x: x)
+    with pytest.raises(ValueError, match="sort_key"):
+        collection.write_json_file(tmp_path / "collection.json")
+
+
+def test_json_roundtrip_with_named_sort_key():
+    collection = Collection([1, 3, 2], sort_key=named_sort_key)
+    restored = Collection.from_json(collection.to_json())
+    eq_(list(restored), [3, 2, 1])
+    assert restored.sort_key is named_sort_key
+    eq_(list(Collection.from_json(Collection([2, 1], sort_key=abs).to_json())), [1, 2])
+
+
+def test_to_string_limit():
+    collection = Collection([1, 2])
+    eq_(collection.to_string(limit=0),
+        "<Collection with 2 elements>\n  ... and 2 more")
+    eq_(collection.to_string(limit=1),
+        "<Collection with 2 elements>\n  -- 1\n  ... and 1 more")
+    eq_(collection.to_string(limit=2),
+        "<Collection with 2 elements>\n  -- 1\n  -- 2")
+    eq_(collection.to_string(),
+        "<Collection with 2 elements>\n  -- 1\n  -- 2")
+    eq_(Collection([]).to_string(limit=0), "<Collection with 0 elements>")
+    eq_(str(collection), collection.to_string(limit=50))
+    with pytest.raises(ValueError, match="limit"):
+        collection.to_string(limit=-1)
+
+
+def test_filename_without_sources_raises_value_error():
+    with pytest.raises(ValueError, match="No source file"):
+        Collection([1]).filename
+    with pytest.raises(ValueError, match="No source file"):
+        Collection([1], sources={""}).filename
+    eq_(Collection([1], sources={"/data/a.vcf"}).filename, "a.vcf")
+
+
+def test_sources_are_listed_in_sorted_order():
+    sources = {"/data/%s.vcf" % name for name in "hgfedcba"}
+    collection = Collection([1], sources=sources)
+    eq_(collection.short_string(),
+        "<Collection from '%s' with 1 elements>" % ",".join(sorted(sources)))
+    eq_(collection.filenames, ["%s.vcf" % name for name in "abcdefgh"])
+    eq_(collection.filename, "a.vcf")
+
+
+def test_eq_compares_sources():
+    neq_(Collection([1], sources={"a.vcf"}), Collection([1], sources={"b.vcf"}))
+    neq_(Collection([1], sources={"a.vcf"}), Collection([1]))
+    eq_(Collection([1], sources={"a.vcf"}), Collection([1], sources=["a.vcf"]))
+    neq_(Collection([1]), None)
+    neq_(Collection([1]), [1])
+    eq_(hash(Collection([1], sources={"a.vcf"})), hash(Collection([1], sources={"a.vcf"})))
+
+
+def test_to_dataframe_of_scalars():
+    df = Collection([1, 2]).to_dataframe()
+    eq_(list(df.columns), ["value"])
+    eq_(list(df["value"]), [1, 2])
+    eq_(list(Collection(["a", "b"]).to_dataframe()["value"]), ["a", "b"])
+    eq_(len(Collection([]).to_dataframe()), 0)
+
+
+def test_to_csv_omits_index_by_default(tmp_path):
+    collection = Collection([{"x": 1, "y": "a"}, {"x": 2, "y": "b"}])
+    path = tmp_path / "collection.csv"
+    collection.to_csv(path)
+    eq_(path.read_text(), "x,y\n1,a\n2,b\n")
+    collection.to_csv(path, index=True)
+    eq_(path.read_text(), ",x,y\n0,1,a\n1,2,b\n")
+
+
+class RenamedElements(Collection):
+    def __init__(self, things, sources=None):
+        Collection.__init__(self, things, sources=sources)
+
+
+class ElementsOnly(Collection):
+    def __init__(self, elements):
+        Collection.__init__(self, elements, sort_key=named_sort_key)
+
+
+class RequiresLabel(Collection):
+    def __init__(self, elements, label, sources=None):
+        Collection.__init__(self, elements, sources=sources)
+        self.label = label
+
+
+class AcceptsAnyKeywords(Collection):
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        Collection.__init__(self, **kwargs)
+
+
+def test_clone_subclass_with_renamed_elements_argument():
+    collection = RenamedElements([1, 2, 3], sources={"a.vcf"})
+    filtered = collection.filter(lambda x: x > 1)
+    eq_(type(filtered), RenamedElements)
+    eq_(list(filtered), [2, 3])
+    eq_(filtered.sources, {"a.vcf"})
+    groups = collection.groupby(lambda x: x % 2)
+    eq_({k: list(v) for k, v in groups.items()}, {1: [1, 3], 0: [2]})
+    eq_(type(groups[0]), RenamedElements)
+
+
+def test_clone_subclass_without_optional_arguments():
+    filtered = ElementsOnly([1, 2, 3]).filter(lambda x: x > 1)
+    eq_(type(filtered), ElementsOnly)
+    eq_(list(filtered), [3, 2])
+
+
+def test_clone_subclass_with_other_required_argument():
+    collection = RequiresLabel([1, 2], label="x")
+    with pytest.raises(TypeError, match="Override clone_with_new_elements"):
+        collection.filter(lambda x: True)
+    clone = collection.clone_with_new_elements([2], extra_kwargs={"label": "y"})
+    eq_((list(clone), clone.label), ([2], "y"))
+
+
+def test_clone_passes_all_state_to_keyword_constructor():
+    collection = AcceptsAnyKeywords(elements=[2, 1], sources={"a.vcf"})
+    clone = collection.filter(lambda x: True)
+    eq_(set(clone.kwargs), {"elements", "distinct", "sort_key", "sources"})
+
+
+def test_clone_keyword_controls():
+    collection = RenamedElements([1, 2], sources={"a.vcf"})
+    clone = collection.clone_with_new_elements(
+        [5],
+        drop_keywords={"distinct", "sort_key"},
+        rename_dict={"elements": "things"})
+    eq_((list(clone), clone.sources), ([5], {"a.vcf"}))

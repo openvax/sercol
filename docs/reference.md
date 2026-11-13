@@ -13,7 +13,8 @@ The full `Collection` API, after a task index. The
 | Save or reload supported objects | Inherited `to_json()`, `from_json()` |
 
 Table conversion expects elements that the serialization helper can turn into
-field dictionaries. A collection of primitive integers is useful for filtering
-examples, but is not a record table.
+field dictionaries. Strings, bytes, numbers and `None` are the exception: each
+becomes a row with a single `value` column. `to_csv()` leaves out the row
+numbers unless called with `index=True`.
 
 ::: sercol.Collection
