@@ -705,14 +705,41 @@ keys for each element when it should appear only once in each group.</p>
 <div class="highlight"><pre><span></span><code>results.csv
 ['results.csv']
 </code></pre></div>
-<p><code>sources</code> labels where values came from; it does not open those files.
-<code>source</code> requires exactly one source. <code>filenames</code> strips directory components.</p>
+<p><code>sources</code> labels where values came from; it does not open those files. Each
+collection keeps its own copy of the set, so adding a source to one collection
+doesn't change another. <code>source</code> requires exactly one source. <code>filenames</code>
+strips directory components and is sorted; <code>filename</code> is its first entry, and
+raises <code>ValueError</code> when there is none.</p>
+<p>Two collections are equal when they have the same class, the same elements in
+the same order and the same sources:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">print</span><span class="p">(</span><span class="n">values</span> <span class="o">==</span> <span class="n">Collection</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">sources</span><span class="o">=</span><span class="p">{</span><span class="s2">"results.csv"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">values</span> <span class="o">==</span> <span class="n">Collection</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">sources</span><span class="o">=</span><span class="p">{</span><span class="s2">"other.csv"</span><span class="p">}))</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>True
+False
+</code></pre></div>
 <h2 id="extend-the-collection">Extend the collection<a class="headerlink" href="#extend-the-collection" title="Permanent link">&para;</a></h2>
-<p>A subclass should accept the state passed by <code>clone_with_new_elements()</code>:
-<code>elements</code>, <code>distinct</code>, <code>sort_key</code> and <code>sources</code>, or override that cloning
-operation. A subclass whose constructor takes exactly those arguments, for
-example one that inherits <code>Collection.__init__</code>, can be pickled, copied and
-saved as JSON as it is. A subclass whose constructor takes other arguments
+<p><code>filter()</code> and the grouping methods build their results with
+<code>clone_with_new_elements()</code>, which passes <code>elements</code>, <code>distinct</code>, <code>sort_key</code>
+and <code>sources</code> to the subclass constructor. A constructor may leave out any of
+<code>distinct</code>, <code>sort_key</code> and <code>sources</code>, and may give its first argument another
+name, as long as that argument is required:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Scores</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Collection</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">sort_key</span><span class="o">=</span><span class="nb">abs</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">)</span>
+
+<span class="n">scores</span> <span class="o">=</span> <span class="n">Scores</span><span class="p">([</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">sources</span><span class="o">=</span><span class="p">{</span><span class="s2">"results.csv"</span><span class="p">})</span>
+<span class="n">high</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">score</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">high</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">high</span><span class="p">),</span> <span class="n">high</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Scores [2, -3] results.csv
+</code></pre></div>
+<p>A constructor with other required arguments must override
+<code>clone_with_new_elements()</code>; otherwise cloning raises a <code>TypeError</code> which says
+so.</p>
+<p>A subclass whose constructor takes exactly <code>elements</code>, <code>distinct</code>, <code>sort_key</code>
+and <code>sources</code>, for example one that inherits <code>Collection.__init__</code>, can be
+pickled, copied and saved as JSON as it is. A subclass whose constructor takes other arguments
 must implement its own <code>to_dict()</code> returning them; <code>Collection.to_dict()</code>
 raises <code>ValueError</code> for it rather than return state its constructor cannot
 accept.</p>

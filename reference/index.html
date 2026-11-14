@@ -483,6 +483,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sercol.Collection.to_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sercol.Collection.to_dataframe" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -531,6 +542,17 @@
     <span class="md-ellipsis">
       
         to_string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.__eq__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __eq__
       
     </span>
   </a>
@@ -798,6 +820,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sercol.Collection.to_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sercol.Collection.to_dataframe" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -846,6 +879,17 @@
     <span class="md-ellipsis">
       
         to_string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.__eq__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __eq__
       
     </span>
   </a>
@@ -965,13 +1009,14 @@
 </tr>
 <tr>
 <td>Save or reload supported objects</td>
-<td>Inherited <code>to_json()</code>, <code>from_json()</code></td>
+<td><code>to_json()</code>, inherited <code>from_json()</code></td>
 </tr>
 </tbody>
 </table>
 <p>Table conversion expects elements that the serialization helper can turn into
-field dictionaries. A collection of primitive integers is useful for filtering
-examples, but is not a record table.</p>
+field dictionaries. Strings, bytes, numbers and <code>None</code> are the exception: each
+becomes a row with a single <code>value</code> column. <code>to_csv()</code> leaves out the row
+numbers unless called with <code>index=True</code>.</p>
 
 
 <div class="doc doc-object doc-class">
@@ -1078,8 +1123,9 @@ otherwise raises an error.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Base names of the non-empty sources, assuming they are file paths
-(for example VCF or MAF files).</p>
+        <p>Sorted base names of the non-empty sources, assuming they are file
+paths (for example VCF or MAF files). A source without a base name,
+such as a directory path ending in a separator, is left out.</p>
 
     </div>
 
@@ -1105,7 +1151,7 @@ otherwise raises an error.</p>
 
         <p>First entry of <code>filenames</code> (the only one when there is a single
 source), kept for backward compatibility.</p>
-<p>Raises IndexError when the collection has no non-empty source.</p>
+<p>Raises ValueError when <code>filenames</code> is empty.</p>
 
     </div>
 
@@ -1122,7 +1168,7 @@ source), kept for backward compatibility.</p>
 
 
 <a href="#sercol.Collection.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">__init__</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="nb">set</span><span class="p">([]))</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">__init__</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">distinct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1133,10 +1179,13 @@ source), kept for backward compatibility.</p>
     <ul>
         <li class="doc-section-item field-body">
             <b><code>elements</code></b>
-              (<code><span title="list">list</span></code>)
+              (<code>iterable</code>)
           –
           <div class="doc-md-description">
-            <p>Collection of any class which  is compatible with the sort key</p>
+            <p>Elements of any class which is compatible with the sort key.
+They are copied into a new list, so an iterator or generator is
+accepted and later changes to the argument don't affect this
+collection.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -1152,7 +1201,7 @@ be hashable) or allow duplicates.</p>
         </li>
         <li class="doc-section-item field-body">
             <b><code>sort_key</code></b>
-              (<code><span title="fn">fn</span></code>, default:
+              (<code>fn</code>, default:
                   <code>None</code>
 )
           –
@@ -1162,12 +1211,14 @@ be hashable) or allow duplicates.</p>
         </li>
         <li class="doc-section-item field-body">
             <b><code>sources</code></b>
-              (<code><span title="set">set</span></code>, default:
-                  <code><span title="set">set</span>([])</code>
+              (<code>set of str, str, path or None</code>, default:
+                  <code>None</code>
 )
           –
           <div class="doc-md-description">
-            <p>Set of files from which this collection was generated.</p>
+            <p>Files from which this collection was generated. They are copied
+into a new set, so collections never share one; a single string
+or path is one source and None means no sources.</p>
           </div>
         </li>
     </ul>
@@ -1229,6 +1280,40 @@ Such a subclass must define its own <code>to_dict</code>.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="sercol.Collection.to_json" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">to_json</span>
+
+
+<a href="#sercol.Collection.to_json" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_json</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Returns a string containing a JSON representation of this collection.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="ValueError">ValueError</span></code>
+            –
+          <div class="doc-md-description">
+            <p>If <code>sort_key</code> is a lambda or a function defined inside another
+function. JSON stores a function as its module and name, so only
+one which can be looked up that way can be loaded again.</p>
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="sercol.Collection.to_dataframe" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">to_dataframe</span>
 
@@ -1240,16 +1325,17 @@ Such a subclass must define its own <code>to_dict</code>.</p>
     <div class="doc doc-contents ">
 
         <p>Build a table with one row per element.</p>
-<p>Each element is converted with <code>serializable.to_dict</code>, so elements
-must be dicts, objects with a <code>to_dict</code> method (such as
-<code>Serializable</code> instances), or objects whose attributes match their
-constructor arguments.</p>
+<p>Strings, bytes, numbers and None each become a row with a single
+<code>value</code> column. Any other element is converted with
+<code>serializable.to_dict</code>, so it must be a dict, an object with a
+<code>to_dict</code> method (such as a <code>Serializable</code> instance), or an
+object whose attributes match its constructor arguments.</p>
 
 
 <p><span class="doc-section-title">Returns:</span></p>
     <ul>
         <li class="doc-section-item field-body">
-              <code><span title="pandas.DataFrame">DataFrame</span></code>
+              <code>DataFrame</code>
           –
           <div class="doc-md-description">
             
@@ -1270,12 +1356,12 @@ constructor arguments.</p>
 
 
 <a href="#sercol.Collection.to_csv" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Write <code>to_dataframe()</code> to a CSV file, including its index column.</p>
+        <p>Write <code>to_dataframe()</code> to a CSV file.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1287,10 +1373,20 @@ constructor arguments.</p>
 
   
       property
-   (sercol.collection.Collection.path)" href="#sercol.Collection.path">path</a> - <span title="like">like</span></code>)
+   (sercol.collection.Collection.path)" href="#sercol.Collection.path">path</a> - like</code>)
           –
           <div class="doc-md-description">
             <p>Destination file; an existing file is overwritten.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>index</code></b>
+              (<code><span title="bool">bool</span></code>, default:
+                  <code>False</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Also write the row numbers as an unnamed first column.</p>
           </div>
         </li>
     </ul>
@@ -1308,7 +1404,7 @@ constructor arguments.</p>
 
 
 <a href="#sercol.Collection.clone_with_new_elements" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">clone_with_new_elements</span><span class="p">(</span><span class="n">new_elements</span><span class="p">,</span> <span class="n">drop_keywords</span><span class="o">=</span><span class="nb">set</span><span class="p">([]),</span> <span class="n">rename_dict</span><span class="o">=</span><span class="p">{},</span> <span class="n">extra_kwargs</span><span class="o">=</span><span class="p">{})</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">clone_with_new_elements</span><span class="p">(</span><span class="n">new_elements</span><span class="p">,</span> <span class="n">drop_keywords</span><span class="o">=</span><span class="p">(),</span> <span class="n">rename_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extra_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1317,6 +1413,13 @@ constructor arguments.</p>
 possibly different entries. Extra parameters to control which keyword
 arguments get passed to the initializer are necessary since derived
 classes have different constructors than the base class.</p>
+<p>A subclass constructor which differs only by leaving out <code>distinct</code>,
+<code>sort_key</code> or <code>sources</code>, or by giving its first argument a name
+other than <code>elements</code>, needs none of the extra parameters: the
+arguments it doesn't take are left out and the elements are passed
+by position. The elements are only passed by position to a first
+argument which is required; one with a default value, or <code>*args</code>,
+is not assumed to hold the elements.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1332,7 +1435,7 @@ classes have different constructors than the base class.</p>
         <li class="doc-section-item field-body">
             <b><code>drop_keywords</code></b>
               (<code>set of str</code>, default:
-                  <code><span title="set">set</span>([])</code>
+                  <code>()</code>
 )
           –
           <div class="doc-md-description">
@@ -1343,7 +1446,7 @@ classes have different constructors than the base class.</p>
         <li class="doc-section-item field-body">
             <b><code>rename_dict</code></b>
               (<code><span title="dict">dict</span></code>, default:
-                  <code>{}</code>
+                  <code>None</code>
 )
           –
           <div class="doc-md-description">
@@ -1354,7 +1457,7 @@ constructor uses.</p>
         <li class="doc-section-item field-body">
             <b><code>extra_kwargs</code></b>
               (<code><span title="dict">dict</span></code>, default:
-                  <code>{}</code>
+                  <code>None</code>
 )
           –
           <div class="doc-md-description">
@@ -1371,6 +1474,21 @@ constructor uses.</p>
           –
           <div class="doc-md-description">
             <p>A new instance of <code>self.__class__</code>.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="TypeError">TypeError</span></code>
+            –
+          <div class="doc-md-description">
+            <p>If the constructor of <code>self.__class__</code> can't be called with
+the resulting arguments, for example because it requires others.
+Such a subclass must pass <code>extra_kwargs</code> or override this
+method.</p>
           </div>
         </li>
     </ul>
@@ -1394,7 +1512,7 @@ constructor uses.</p>
     <div class="doc doc-contents ">
 
         <p>Compact string representation which doesn't print any of the
-collection elements.</p>
+collection elements. Sources are listed in sorted order.</p>
 
 
     </div>
@@ -1415,7 +1533,29 @@ collection elements.</p>
     <div class="doc doc-contents ">
 
         <p>Create a string representation of this collection, showing up to
-<code>limit</code> items.</p>
+<code>limit</code> items (all of them when <code>limit</code> is None).</p>
+<p>Raises ValueError when <code>limit</code> is negative.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sercol.Collection.__eq__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__eq__</span>
+
+
+<a href="#sercol.Collection.__eq__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Collections are equal when they have the same class, the same
+elements in the same order and the same sources.</p>
 
 
     </div>

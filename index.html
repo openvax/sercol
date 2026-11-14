@@ -646,8 +646,10 @@ collections. Both keep the original collection class and its <code>distinct</cod
 True
 </code></pre></div>
 <p>Serialization uses <a href="https://github.com/openvax/serializable">serializable</a>.
-Elements and constructor state must be supported by that format; callable
-sorting keys need to be importable when reconstructing the collection.</p>
+Elements and constructor state must be supported by that format. A <code>sort_key</code>
+must be a function defined at the top level of a module, so that it can be
+imported when reconstructing the collection; <code>to_json()</code> raises <code>ValueError</code>
+for a lambda or a function defined inside another function.</p>
 <p>See <a href="guides/collections/">select, order and track values</a> for thresholds,
 multiple grouping keys and source metadata. The <a href="reference/">API reference</a>
 lists all collection operations.</p>
