@@ -52,8 +52,10 @@ True
 ```
 
 Serialization uses [serializable](https://github.com/openvax/serializable).
-Elements and constructor state must be supported by that format; callable
-sorting keys need to be importable when reconstructing the collection.
+Elements and constructor state must be supported by that format. A `sort_key`
+must be a function defined at the top level of a module, so that it can be
+imported when reconstructing the collection; `to_json()` raises `ValueError`
+for a lambda or a function defined inside another function.
 
 See [select, order and track values](guides/collections.md) for thresholds,
 multiple grouping keys and source metadata. The [API reference](reference.md)

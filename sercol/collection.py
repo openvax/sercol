@@ -11,11 +11,20 @@
 # limitations under the License.
 
 import inspect
+import numbers
 import os.path
 from collections import defaultdict
 
 import pandas as pd
 import serializable
+
+# Constructor arguments which clone_with_new_elements() passes on only to
+# constructors which accept them.
+_OPTIONAL_STATE = ("distinct", "sort_key", "sources")
+
+# Elements which to_dataframe() puts in a single "value" column.
+_SCALAR_TYPES = (str, bytes, numbers.Number, type(None))
+
 
 class Collection(serializable.Serializable):
     """
@@ -26,12 +35,15 @@ class Collection(serializable.Serializable):
             elements,
             distinct=False,
             sort_key=None,
-            sources=set([])):
+            sources=None):
         """
         Parameters
         ----------
-        elements : list
-            Collection of any class which  is compatible with the sort key
+        elements : iterable
+            Elements of any class which is compatible with the sort key.
+            They are copied into a new list, so an iterator or generator is
+            accepted and later changes to the argument don't affect this
+            collection.
 
         distinct : bool
             Keep only the first occurrence of each element (elements must
@@ -40,17 +52,28 @@ class Collection(serializable.Serializable):
         sort_key : fn
             Function which maps each element to a sorting criterion.
 
-        sources : set
-            Set of files from which this collection was generated.
+        sources : set of str, str, path or None
+            Files from which this collection was generated. They are copied
+            into a new set, so collections never share one; a single string
+            or path is one source and None means no sources.
         """
         self.distinct = distinct
         if distinct:
             elements = list(dict.fromkeys(elements))
-        self.sort_key = sort_key
-        if self.sort_key is None:
-            self.elements = elements
         else:
-            self.elements = sorted(elements, key=sort_key)
+            elements = list(elements)
+        self.sort_key = sort_key
+        if self.sort_key is not None:
+            elements = sorted(elements, key=sort_key)
+        self.elements = elements
+        if sources is None:
+            sources = set()
+        elif isinstance(sources, os.PathLike):
+            sources = {os.fspath(sources)}
+        elif isinstance(sources, (str, bytes)):
+            sources = {sources}
+        else:
+            sources = set(sources)
         self.sources = sources
 
     def to_dict(self):
@@ -84,43 +107,83 @@ class Collection(serializable.Serializable):
                 "so it must define its own to_dict()" % type(self).__name__)
         return state
 
+    def to_json(self):
+        """
+        Returns a string containing a JSON representation of this collection.
+
+        Raises
+        ------
+        ValueError
+            If ``sort_key`` is a lambda or a function defined inside another
+            function. JSON stores a function as its module and name, so only
+            one which can be looked up that way can be loaded again.
+        """
+        sort_key = self.sort_key
+        # Only functions are stored by name; other callables, such as a
+        # Serializable instance, are left to serializable.
+        if inspect.isroutine(sort_key):
+            qualified_name = getattr(sort_key, "__qualname__", None)
+            module_name = getattr(sort_key, "__module__", None)
+            if qualified_name is None or module_name is None or "<" in qualified_name:
+                raise ValueError(
+                    "Can't save %s as JSON: its sort_key %r can't be looked up "
+                    "by name when loading. Use a function defined at the top "
+                    "level of a module instead of a lambda or nested "
+                    "function." % (type(self).__name__, sort_key))
+        return super().to_json()
+
     def to_dataframe(self):
         """
         Build a table with one row per element.
 
-        Each element is converted with ``serializable.to_dict``, so elements
-        must be dicts, objects with a ``to_dict`` method (such as
-        ``Serializable`` instances), or objects whose attributes match their
-        constructor arguments.
+        Strings, bytes, numbers and None each become a row with a single
+        ``value`` column. Any other element is converted with
+        ``serializable.to_dict``, so it must be a dict, an object with a
+        ``to_dict`` method (such as a ``Serializable`` instance), or an
+        object whose attributes match its constructor arguments.
 
         Returns
         -------
         pandas.DataFrame
         """
-        return pd.DataFrame.from_records([serializable.to_dict(x) for x in self])
+        return pd.DataFrame.from_records([
+            {"value": x} if isinstance(x, _SCALAR_TYPES) else serializable.to_dict(x)
+            for x in self
+        ])
 
-    def to_csv(self, path):
+    def to_csv(self, path, index=False):
         """
-        Write ``to_dataframe()`` to a CSV file, including its index column.
+        Write ``to_dataframe()`` to a CSV file.
 
         Parameters
         ----------
         path : str or path-like
             Destination file; an existing file is overwritten.
+
+        index : bool
+            Also write the row numbers as an unnamed first column.
         """
-        return self.to_dataframe().to_csv(path)
+        return self.to_dataframe().to_csv(path, index=index)
 
     def clone_with_new_elements(
             self,
             new_elements,
-            drop_keywords=set([]),
-            rename_dict={},
-            extra_kwargs={}):
+            drop_keywords=(),
+            rename_dict=None,
+            extra_kwargs=None):
         """
         Create another Collection of the same class and with same state but
         possibly different entries. Extra parameters to control which keyword
         arguments get passed to the initializer are necessary since derived
         classes have different constructors than the base class.
+
+        A subclass constructor which differs only by leaving out ``distinct``,
+        ``sort_key`` or ``sources``, or by giving its first argument a name
+        other than ``elements``, needs none of the extra parameters: the
+        arguments it doesn't take are left out and the elements are passed
+        by position. The elements are only passed by position to a first
+        argument which is required; one with a default value, or ``*args``,
+        is not assumed to hold the elements.
 
         Parameters
         ----------
@@ -142,6 +205,14 @@ class Collection(serializable.Serializable):
         -------
         Collection
             A new instance of ``self.__class__``.
+
+        Raises
+        ------
+        TypeError
+            If the constructor of ``self.__class__`` can't be called with
+            the resulting arguments, for example because it requires others.
+            Such a subclass must pass ``extra_kwargs`` or override this
+            method.
         """
         kwargs = dict(
             elements=new_elements,
@@ -150,10 +221,44 @@ class Collection(serializable.Serializable):
             sources=self.sources)
         for name in drop_keywords:
             kwargs.pop(name)
-        for old_name, new_name in rename_dict.items():
+        for old_name, new_name in (rename_dict or {}).items():
             kwargs[new_name] = kwargs.pop(old_name)
-        kwargs.update(extra_kwargs)
-        return self.__class__(**kwargs)
+        kwargs.update(extra_kwargs or {})
+
+        cls = self.__class__
+        signature = inspect.signature(cls)
+        parameters = signature.parameters
+        args = []
+        first = next(iter(parameters.values()), None)
+        if (
+                "elements" in kwargs and
+                "elements" not in parameters and
+                first is not None and
+                first.name not in kwargs and
+                first.default is first.empty and
+                first.kind in (
+                    first.POSITIONAL_ONLY,
+                    first.POSITIONAL_OR_KEYWORD)):
+            args.append(kwargs.pop("elements"))
+        if not any(p.kind is p.VAR_KEYWORD for p in parameters.values()):
+            for name in _OPTIONAL_STATE:
+                if name in kwargs and name not in parameters:
+                    del kwargs[name]
+        try:
+            signature.bind(*args, **kwargs)
+        except TypeError as error:
+            raise TypeError(
+                "Can't clone %s: its constructor %s%s doesn't fit the arguments "
+                "(%s) which clone_with_new_elements() passes (%s). Override "
+                "clone_with_new_elements() in %s, or call it with "
+                "drop_keywords, rename_dict or extra_kwargs." % (
+                    cls.__name__,
+                    cls.__name__,
+                    signature,
+                    ", ".join(["<elements>"] * len(args) + sorted(kwargs)),
+                    error,
+                    cls.__name__)) from error
+        return cls(*args, **kwargs)
 
     @property
     def source(self):
@@ -177,10 +282,13 @@ class Collection(serializable.Serializable):
     @property
     def filenames(self):
         """
-        Base names of the non-empty sources, assuming they are file paths
-        (for example VCF or MAF files).
+        Sorted base names of the non-empty sources, assuming they are file
+        paths (for example VCF or MAF files). A source without a base name,
+        such as a directory path ending in a separator, is left out.
         """
-        return [os.path.basename(source) for source in self.sources if source]
+        filenames = (
+            os.path.basename(source) for source in self.sources if source)
+        return sorted(filename for filename in filenames if filename)
 
     @property
     def filename(self):
@@ -188,18 +296,23 @@ class Collection(serializable.Serializable):
         First entry of ``filenames`` (the only one when there is a single
         source), kept for backward compatibility.
 
-        Raises IndexError when the collection has no non-empty source.
+        Raises ValueError when ``filenames`` is empty.
         """
-        return self.filenames[0]
+        filenames = self.filenames
+        if len(filenames) == 0:
+            raise ValueError(
+                "No source file associated with %s" % self.__class__.__name__)
+        return filenames[0]
 
     def short_string(self):
         """
         Compact string representation which doesn't print any of the
-        collection elements.
+        collection elements. Sources are listed in sorted order.
         """
         source_str = ""
         if self.sources:
-            source_str = " from '%s'" % ",".join(self.sources)
+            source_str = " from '%s'" % ",".join(
+                sorted(str(source) for source in self.sources))
         return "<%s%s with %d elements>" % (
             self.__class__.__name__,
             source_str,
@@ -208,21 +321,19 @@ class Collection(serializable.Serializable):
     def to_string(self, limit=None):
         """
         Create a string representation of this collection, showing up to
-        `limit` items.
-        """
-        header = self.short_string()
-        if len(self) == 0:
-            return header
-        contents = ""
-        element_lines = [
-            "  -- %s" % (element,)
-            for element in self.elements[:limit]
-        ]
-        contents = "\n".join(element_lines)
+        `limit` items (all of them when `limit` is None).
 
-        if limit is not None and len(self.elements) > limit:
-            contents += "\n  ... and %d more" % (len(self) - limit)
-        return "%s\n%s" % (header, contents)
+        Raises ValueError when `limit` is negative.
+        """
+        if limit is not None and limit < 0:
+            raise ValueError("limit must not be negative, got %r" % (limit,))
+        lines = [self.short_string()]
+        lines.extend(
+            "  -- %s" % (element,)
+            for element in self.elements[:limit])
+        if limit is not None and len(self) > limit:
+            lines.append("  ... and %d more" % (len(self) - limit))
+        return "\n".join(lines)
 
     def __str__(self):
         return self.to_string(limit=50)
@@ -240,11 +351,16 @@ class Collection(serializable.Serializable):
         return self.elements[idx]
 
     def __eq__(self, other):
+        """
+        Collections are equal when they have the same class, the same
+        elements in the same order and the same sources.
+        """
         if self is other:
             return True
         return (
             self.__class__ == other.__class__ and
             len(self) == len(other) and
+            self.sources == other.sources and
             all(x == y for (x, y) in zip(self, other)))
 
     def filter(self, filter_fn):
