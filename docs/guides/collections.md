@@ -72,16 +72,54 @@ results.csv
 ['results.csv']
 ```
 
-`sources` labels where values came from; it does not open those files.
-`source` requires exactly one source. `filenames` strips directory components.
+`sources` labels where values came from; it does not open those files. Each
+collection keeps its own copy of the set, so adding a source to one collection
+doesn't change another. `source` requires exactly one source. `filenames`
+strips directory components and is sorted; `filename` is its first entry, and
+raises `ValueError` when there is none.
+
+Two collections are equal when they have the same class, the same elements in
+the same order and the same sources:
+
+```python
+print(values == Collection([1, 2, 3], sources={"results.csv"}))
+print(values == Collection([1, 2, 3], sources={"other.csv"}))
+```
+
+```text
+True
+False
+```
 
 ## Extend the collection
 
-A subclass should accept the state passed by `clone_with_new_elements()`:
-`elements`, `distinct`, `sort_key` and `sources`, or override that cloning
-operation. A subclass whose constructor takes exactly those arguments, for
-example one that inherits `Collection.__init__`, can be pickled, copied and
-saved as JSON as it is. A subclass whose constructor takes other arguments
+`filter()` and the grouping methods build their results with
+`clone_with_new_elements()`, which passes `elements`, `distinct`, `sort_key`
+and `sources` to the subclass constructor. A constructor may leave out any of
+`distinct`, `sort_key` and `sources`, and may give its first argument another
+name, as long as that argument is required:
+
+```python
+class Scores(Collection):
+    def __init__(self, scores, sources=None):
+        Collection.__init__(self, scores, sort_key=abs, sources=sources)
+
+scores = Scores([-3, 1, 2], sources={"results.csv"})
+high = scores.filter(lambda score: abs(score) > 1)
+print(type(high).__name__, list(high), high.source)
+```
+
+```text
+Scores [2, -3] results.csv
+```
+
+A constructor with other required arguments must override
+`clone_with_new_elements()`; otherwise cloning raises a `TypeError` which says
+so.
+
+A subclass whose constructor takes exactly `elements`, `distinct`, `sort_key`
+and `sources`, for example one that inherits `Collection.__init__`, can be
+pickled, copied and saved as JSON as it is. A subclass whose constructor takes other arguments
 must implement its own `to_dict()` returning them; `Collection.to_dict()`
 raises `ValueError` for it rather than return state its constructor cannot
 accept.
