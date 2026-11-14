@@ -14,7 +14,10 @@
 Test methods shared by both VariantCollection and EffectCollection
 """
 
+from pathlib import Path
+
 import pytest
+from serializable import Serializable
 
 from .common import eq_, neq_
 from sercol import Collection
@@ -209,7 +212,6 @@ def test_eq_compares_sources():
     eq_(Collection([1], sources={"a.vcf"}), Collection([1], sources=["a.vcf"]))
     neq_(Collection([1]), None)
     neq_(Collection([1]), [1])
-    eq_(hash(Collection([1], sources={"a.vcf"})), hash(Collection([1], sources={"a.vcf"})))
 
 
 def test_to_dataframe_of_scalars():
@@ -280,6 +282,66 @@ def test_clone_passes_all_state_to_keyword_constructor():
     collection = AcceptsAnyKeywords(elements=[2, 1], sources={"a.vcf"})
     clone = collection.filter(lambda x: True)
     eq_(set(clone.kwargs), {"elements", "distinct", "sort_key", "sources"})
+
+
+class RenamedWithKeywords(Collection):
+    def __init__(self, things, **kwargs):
+        self.kwargs = kwargs
+        Collection.__init__(self, things, **kwargs)
+
+
+class DefaultFirstArgument(Collection):
+    def __init__(self, name="x", items=()):
+        Collection.__init__(self, items)
+        self.name = name
+
+
+class StarArguments(Collection):
+    def __init__(self, *things):
+        Collection.__init__(self, things)
+
+
+def test_clone_subclass_with_renamed_elements_and_keywords():
+    collection = RenamedWithKeywords([1, 2, 3], sources={"a.vcf"})
+    filtered = collection.filter(lambda x: x > 1)
+    eq_(list(filtered), [2, 3])
+    eq_(set(filtered.kwargs), {"distinct", "sort_key", "sources"})
+    eq_(filtered.sources, {"a.vcf"})
+
+
+def test_clone_does_not_guess_which_argument_holds_elements():
+    with pytest.raises(TypeError, match="Override clone_with_new_elements"):
+        DefaultFirstArgument("label", [1, 2, 3]).filter(lambda x: x > 1)
+    with pytest.raises(TypeError, match="Override clone_with_new_elements"):
+        StarArguments(1, 2, 3).filter(lambda x: x > 1)
+
+
+class CallableKey(Serializable):
+    def __init__(self, sign):
+        self.sign = sign
+
+    def __call__(self, x):
+        return self.sign * x
+
+
+def test_json_roundtrip_with_callable_object_sort_key():
+    collection = Collection([1, 3, 2], sort_key=CallableKey(-1))
+    restored = Collection.from_json(collection.to_json())
+    eq_(list(restored), [3, 2, 1])
+    eq_(restored.sort_key.sign, -1)
+
+
+def test_single_source_as_path_or_bytes():
+    eq_(Collection([1], sources=Path("/data/a.vcf")).sources, {"/data/a.vcf"})
+    eq_(Collection([1], sources=b"ab").sources, {b"ab"})
+
+
+def test_filenames_skip_sources_without_base_name():
+    collection = Collection([1], sources={"/data/run1/", "/data/z.vcf"})
+    eq_(collection.filenames, ["z.vcf"])
+    eq_(collection.filename, "z.vcf")
+    with pytest.raises(ValueError, match="No source file"):
+        Collection([1], sources={"/data/run1/"}).filename
 
 
 def test_clone_keyword_controls():

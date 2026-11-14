@@ -97,7 +97,7 @@ False
 `clone_with_new_elements()`, which passes `elements`, `distinct`, `sort_key`
 and `sources` to the subclass constructor. A constructor may leave out any of
 `distinct`, `sort_key` and `sources`, and may give its first argument another
-name:
+name, as long as that argument is required:
 
 ```python
 class Scores(Collection):

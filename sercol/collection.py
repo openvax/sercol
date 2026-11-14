@@ -52,10 +52,10 @@ class Collection(serializable.Serializable):
         sort_key : fn
             Function which maps each element to a sorting criterion.
 
-        sources : set of str, str or None
+        sources : set of str, str, path or None
             Files from which this collection was generated. They are copied
             into a new set, so collections never share one; a single string
-            is one source and None means no sources.
+            or path is one source and None means no sources.
         """
         self.distinct = distinct
         if distinct:
@@ -68,7 +68,9 @@ class Collection(serializable.Serializable):
         self.elements = elements
         if sources is None:
             sources = set()
-        elif isinstance(sources, str):
+        elif isinstance(sources, os.PathLike):
+            sources = {os.fspath(sources)}
+        elif isinstance(sources, (str, bytes)):
             sources = {sources}
         else:
             sources = set(sources)
@@ -117,7 +119,9 @@ class Collection(serializable.Serializable):
             one which can be looked up that way can be loaded again.
         """
         sort_key = self.sort_key
-        if sort_key is not None:
+        # Only functions are stored by name; other callables, such as a
+        # Serializable instance, are left to serializable.
+        if inspect.isroutine(sort_key):
             qualified_name = getattr(sort_key, "__qualname__", None)
             module_name = getattr(sort_key, "__module__", None)
             if qualified_name is None or module_name is None or "<" in qualified_name:
@@ -177,7 +181,9 @@ class Collection(serializable.Serializable):
         ``sort_key`` or ``sources``, or by giving its first argument a name
         other than ``elements``, needs none of the extra parameters: the
         arguments it doesn't take are left out and the elements are passed
-        by position.
+        by position. The elements are only passed by position to a first
+        argument which is required; one with a default value, or ``*args``,
+        is not assumed to hold the elements.
 
         Parameters
         ----------
@@ -223,21 +229,21 @@ class Collection(serializable.Serializable):
         signature = inspect.signature(cls)
         parameters = signature.parameters
         args = []
+        first = next(iter(parameters.values()), None)
+        if (
+                "elements" in kwargs and
+                "elements" not in parameters and
+                first is not None and
+                first.name not in kwargs and
+                first.default is first.empty and
+                first.kind in (
+                    first.POSITIONAL_ONLY,
+                    first.POSITIONAL_OR_KEYWORD)):
+            args.append(kwargs.pop("elements"))
         if not any(p.kind is p.VAR_KEYWORD for p in parameters.values()):
             for name in _OPTIONAL_STATE:
                 if name in kwargs and name not in parameters:
                     del kwargs[name]
-            first = next(iter(parameters.values()), None)
-            if (
-                    "elements" in kwargs and
-                    "elements" not in parameters and
-                    first is not None and
-                    first.name not in kwargs and
-                    first.kind in (
-                        first.POSITIONAL_ONLY,
-                        first.POSITIONAL_OR_KEYWORD,
-                        first.VAR_POSITIONAL)):
-                args.append(kwargs.pop("elements"))
         try:
             signature.bind(*args, **kwargs)
         except TypeError as error:
@@ -277,10 +283,12 @@ class Collection(serializable.Serializable):
     def filenames(self):
         """
         Sorted base names of the non-empty sources, assuming they are file
-        paths (for example VCF or MAF files).
+        paths (for example VCF or MAF files). A source without a base name,
+        such as a directory path ending in a separator, is left out.
         """
-        return sorted(
+        filenames = (
             os.path.basename(source) for source in self.sources if source)
+        return sorted(filename for filename in filenames if filename)
 
     @property
     def filename(self):
@@ -288,7 +296,7 @@ class Collection(serializable.Serializable):
         First entry of ``filenames`` (the only one when there is a single
         source), kept for backward compatibility.
 
-        Raises ValueError when the collection has no non-empty source.
+        Raises ValueError when ``filenames`` is empty.
         """
         filenames = self.filenames
         if len(filenames) == 0:
