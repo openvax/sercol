@@ -62,6 +62,10 @@ python -m pip install -r requirements-docs.txt
 ./docs.sh   # strict build, rendered links and runnable examples
 ```
 
+The development installer uses `python` from the active environment. Set
+`PYTHON=/path/to/python ./develop.sh` to select an interpreter explicitly;
+additional arguments are passed to pip.
+
 ## License
 
 Apache 2.0; see [LICENSE](https://github.com/openvax/sercol/blob/master/LICENSE).
