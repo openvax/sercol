@@ -59,8 +59,7 @@ python -m pip install -e . pytest pytest-cov ruff
 ./lint.sh   # ruff check
 ./test.sh   # pytest with coverage
 python -m pip install -r requirements-docs.txt
-./docs.sh   # mkdocs build --strict, then a rendered-link check
-python scripts/check_docs_examples.py   # run docs examples, compare output
+./docs.sh   # strict build, rendered links and runnable examples
 ```
 
 ## License
