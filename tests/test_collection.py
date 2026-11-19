@@ -243,6 +243,68 @@ def test_hash_of_unhashable_elements_does_not_raise():
     assert hash(first) != hash(RenamedElements([{"x": 1}, {"x": 2}]))
 
 
+def test_hash_of_each_short_length():
+    for length in range(1, 12):
+        elements = list(range(length))
+        eq_(hash(Collection(elements)), hash(Collection(list(elements))))
+        changed = [-1] + elements[1:]
+        assert hash(Collection(elements)) != hash(Collection(changed))
+        changed = elements[:-1] + [-1]
+        assert hash(Collection(elements)) != hash(Collection(changed))
+
+
+def test_hash_ignores_middle_elements_of_long_collections():
+    first = Collection(range(9))
+    second = Collection([0, 1, 2, 3, 99, 5, 6, 7, 8])
+    neq_(first, second)
+    eq_(hash(first), hash(second))
+    # An unhashable element outside the sampled ends doesn't matter either.
+    third = Collection([0, 1, 2, 3, {}, 5, 6, 7, 8])
+    eq_(hash(first), hash(third))
+
+
+def test_hash_of_nested_collections_is_cheap():
+    nested = Collection([1])
+    for _ in range(200):
+        nested = Collection([nested])
+    same = Collection([1])
+    for _ in range(200):
+        same = Collection([same])
+    eq_(hash(nested), hash(same))
+    eq_(hash(Collection([Collection([1, 2])])), hash(Collection([Collection([1, 2])])))
+    eq_(Collection([Collection([1, 2])]), Collection([Collection([1, 2])]))
+    assert hash(Collection([Collection([1, 2])])) != hash(Collection([Collection([1])]))
+    assert hash(Collection([Collection([1])])) != hash(Collection([RenamedElements([1])]))
+
+
+def test_hash_of_collection_which_contains_itself():
+    collection = Collection([1])
+    collection.elements.append(collection)
+    eq_(hash(collection), hash(collection))
+
+
+def test_hash_of_subclass_instances():
+    eq_(hash(RenamedElements([1, 2])), hash(RenamedElements([1, 2])))
+    eq_(RenamedElements([1, 2]), RenamedElements([1, 2]))
+
+
+def test_hash_passes_on_other_errors_from_elements():
+    class BrokenHash:
+        def __hash__(self):
+            raise ValueError("broken")
+
+    with pytest.raises(ValueError, match="broken"):
+        hash(Collection([BrokenHash()]))
+
+
+def test_equal_elements_of_different_hashability_hash_differently():
+    # Documented exception to "equal collections have equal hashes".
+    first = Collection([{1}])
+    second = Collection([frozenset({1})])
+    eq_(first, second)
+    assert hash(first) != hash(second)
+
+
 def test_collections_as_set_members_and_dict_keys():
     collections = [Collection([i, i + 1]) for i in range(50)]
     eq_(len(set(collections + [Collection([0, 1])])), 50)
