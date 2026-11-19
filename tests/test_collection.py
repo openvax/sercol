@@ -245,8 +245,30 @@ def test_to_csv_separator_and_columns(tmp_path):
     eq_(path.read_text(), ";y\n0;a\n1;b\n")
     with pytest.raises(KeyError):
         collection.to_csv(path, columns=["missing"])
+    with pytest.raises(KeyError):
+        collection.to_csv(path, columns=["x", "missing"])
+    with pytest.raises(TypeError):
+        collection.to_csv(path, sep="::")
     with pytest.raises(TypeError):
         collection.to_csv(path, False, "\t")
+
+
+def test_to_csv_of_empty_collection_writes_requested_header(tmp_path):
+    path = tmp_path / "empty.csv"
+    Collection([]).to_csv(path, columns=["x", "y"])
+    eq_(path.read_text(), "x,y\n")
+    Collection([]).to_csv(path, sep="\t", columns=["y", "x"])
+    eq_(path.read_text(), "y\tx\n")
+    eq_(list(pd.read_csv(path, sep="\t").columns), ["y", "x"])
+
+
+def test_to_csv_with_options_can_be_read_back_with_pandas(tmp_path):
+    collection = Collection([{"x": 1, "y": "a"}, {"x": 2, "y": "b"}])
+    path = tmp_path / "collection.tsv"
+    collection.to_csv(path, sep="\t", columns=["y", "x"])
+    loaded = pd.read_csv(path, sep="\t")
+    eq_(list(loaded.columns), ["y", "x"])
+    eq_(loaded[["x", "y"]].to_dict("records"), collection.elements)
 
 
 def test_to_csv_can_be_read_back_with_pandas(tmp_path):

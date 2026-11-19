@@ -155,7 +155,7 @@ class Collection(serializable.Serializable):
         """
         Write ``to_dataframe()`` to a delimited text file for other tools to
         read. sercol has no matching reader; load the file with
-        ``pandas.read_csv``.
+        ``pandas.read_csv``, giving it the same ``sep``.
 
         Parameters
         ----------
@@ -171,16 +171,22 @@ class Collection(serializable.Serializable):
 
         columns : list of str, optional
             Columns to write, in this order. All columns are written when
-            this is None.
+            this is None. An empty collection has no columns of its own, so
+            for one the file holds just these names as its header.
 
         Raises
         ------
         KeyError
             If ``columns`` names a column which ``to_dataframe()`` doesn't
-            have.
+            have and the collection isn't empty.
+
+        TypeError
+            If ``sep`` is longer than one character.
         """
-        return self.to_dataframe().to_csv(
-            path, index=index, sep=sep, columns=columns)
+        df = self.to_dataframe()
+        if columns is not None and len(df) == 0:
+            df = df.reindex(columns=columns)
+        return df.to_csv(path, index=index, sep=sep, columns=columns)
 
     def clone_with_new_elements(
             self,

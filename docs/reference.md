@@ -18,6 +18,6 @@ becomes a row with a single `value` column. `to_csv()` leaves out the row
 numbers unless called with `index=True`, and takes `sep` for another field
 separator and `columns` to choose and order the columns written. sercol writes
 a table for other tools to read and does not read one back; load the file with
-`pandas.read_csv`.
+`pandas.read_csv`, giving it the same `sep`.
 
 ::: sercol.Collection
