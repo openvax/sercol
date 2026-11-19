@@ -15,6 +15,9 @@ The full `Collection` API, after a task index. The
 Table conversion expects elements that the serialization helper can turn into
 field dictionaries. Strings, bytes, numbers and `None` are the exception: each
 becomes a row with a single `value` column. `to_csv()` leaves out the row
-numbers unless called with `index=True`.
+numbers unless called with `index=True`, and takes `sep` for another field
+separator and `columns` to choose and order the columns written. sercol writes
+a table for other tools to read and does not read one back; load the file with
+`pandas.read_csv`, giving it the same `sep`.
 
 ::: sercol.Collection
