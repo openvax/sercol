@@ -91,10 +91,13 @@ True
 False
 ```
 
-Equal collections have equal hashes, so a collection can be a set member or a
-dict key. The hash covers the class, the number of elements and the first and
-last few elements; unhashable elements are left out of it instead of raising.
-Don't change the elements of a collection while it is in a set or dict.
+A collection can be a set member or a dict key. Its hash covers the class, the
+number of elements and the first and last few elements; if one of those is
+unhashable, such as a dict, only the class and the number of elements are
+hashed instead of raising. Equal collections have equal hashes unless an
+unhashable element of one equals a hashable element of the other, such as a
+`set` and a `frozenset`. Don't change the elements of a collection while it is
+in a set or dict.
 
 ## Extend the collection
 
