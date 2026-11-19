@@ -215,6 +215,42 @@ def test_eq_compares_sources():
     neq_(Collection([1]), [1])
 
 
+def test_hash_differs_for_different_contents():
+    assert hash(Collection([1, 2])) != hash(Collection(["x", "y"]))
+    assert hash(Collection([1, 2])) != hash(Collection([1, 3]))
+    assert hash(Collection([1, 2])) != hash(Collection([1, 2, 3]))
+    # The last elements count too, so a shared prefix doesn't collide.
+    assert hash(Collection(range(100))) != hash(Collection(list(range(99)) + [0]))
+    assert hash(Collection([1, 2])) != hash(RenamedElements([1, 2]))
+
+
+def test_equal_collections_have_equal_hashes():
+    for elements in ([], [1], ["a", "b", "c"], list(range(100))):
+        eq_(hash(Collection(elements)), hash(Collection(list(elements))))
+    eq_(hash(Collection([1, 2])), hash(Collection([1.0, 2.0])))
+    eq_(Collection([1, 2]), Collection([1.0, 2.0]))
+    eq_(
+        hash(Collection([1], sources={"a.vcf"})),
+        hash(Collection([1], sources=["a.vcf"])))
+
+
+def test_hash_of_unhashable_elements_does_not_raise():
+    first = Collection([{"x": 1}, {"x": 2}])
+    second = Collection([{"x": 1}, {"x": 2}])
+    eq_(first, second)
+    eq_(hash(first), hash(second))
+    assert hash(first) != hash(Collection([{"x": 1}]))
+    assert hash(first) != hash(RenamedElements([{"x": 1}, {"x": 2}]))
+
+
+def test_collections_as_set_members_and_dict_keys():
+    collections = [Collection([i, i + 1]) for i in range(50)]
+    eq_(len(set(collections + [Collection([0, 1])])), 50)
+    lookup = {collection: collection[0] for collection in collections}
+    eq_(lookup[Collection([7, 8])], 7)
+    eq_(len({hash(collection) for collection in collections}), 50)
+
+
 def test_to_dataframe_of_scalars():
     df = Collection([1, 2]).to_dataframe()
     eq_(list(df.columns), ["value"])
