@@ -25,6 +25,9 @@ _OPTIONAL_STATE = ("distinct", "sort_key", "sources")
 # Elements which to_dataframe() puts in a single "value" column.
 _SCALAR_TYPES = (str, bytes, numbers.Number, type(None))
 
+# Number of elements from each end of a collection which __hash__() looks at.
+_HASHED_ELEMENTS_PER_END = 4
+
 
 class Collection(serializable.Serializable):
     """
@@ -345,7 +348,27 @@ class Collection(serializable.Serializable):
         return iter(self.elements)
 
     def __hash__(self):
-        return hash(len(self))
+        """
+        Hash the class, the number of elements and the first and last few
+        elements, so collections with different contents rarely share a
+        hash while hashing a large collection stays cheap.
+
+        Equal collections have equal hashes. If one of the sampled elements
+        is unhashable, only the class and the number of elements are hashed,
+        so every collection can be hashed.
+
+        The hash is computed from the current elements. Changing ``elements``
+        while the collection is in a set or is a dict key makes it
+        unreachable there, as with any mutable object which is hashed by
+        value.
+        """
+        sampled = (
+            self.elements[:_HASHED_ELEMENTS_PER_END] +
+            self.elements[-_HASHED_ELEMENTS_PER_END:])
+        try:
+            return hash((self.__class__, len(self), tuple(sampled)))
+        except TypeError:
+            return hash((self.__class__, len(self)))
 
     def __getitem__(self, idx):
         return self.elements[idx]

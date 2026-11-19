@@ -91,6 +91,11 @@ True
 False
 ```
 
+Equal collections have equal hashes, so a collection can be a set member or a
+dict key. The hash covers the class, the number of elements and the first and
+last few elements; unhashable elements are left out of it instead of raising.
+Don't change the elements of a collection while it is in a set or dict.
+
 ## Extend the collection
 
 `filter()` and the grouping methods build their results with
