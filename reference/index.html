@@ -1016,7 +1016,10 @@
 <p>Table conversion expects elements that the serialization helper can turn into
 field dictionaries. Strings, bytes, numbers and <code>None</code> are the exception: each
 becomes a row with a single <code>value</code> column. <code>to_csv()</code> leaves out the row
-numbers unless called with <code>index=True</code>.</p>
+numbers unless called with <code>index=True</code>, and takes <code>sep</code> for another field
+separator and <code>columns</code> to choose and order the columns written. sercol writes
+a table for other tools to read and does not read one back; load the file with
+<code>pandas.read_csv</code>, giving it the same <code>sep</code>.</p>
 
 
 <div class="doc doc-object doc-class">
@@ -1356,12 +1359,14 @@ object whose attributes match its constructor arguments.</p>
 
 
 <a href="#sercol.Collection.to_csv" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">to_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">','</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Write <code>to_dataframe()</code> to a CSV file.</p>
+        <p>Write <code>to_dataframe()</code> to a delimited text file for other tools to
+read. sercol has no matching reader; load the file with
+<code>pandas.read_csv</code>, giving it the same <code>sep</code>.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1387,6 +1392,49 @@ object whose attributes match its constructor arguments.</p>
           –
           <div class="doc-md-description">
             <p>Also write the row numbers as an unnamed first column.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>sep</code></b>
+              (<code><span title="str">str</span></code>, default:
+                  <code>&#39;,&#39;</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Single character which separates the fields, such as <code>"\t"</code>
+for a tab-separated file.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>columns</code></b>
+              (<code>list of str</code>, default:
+                  <code>None</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Columns to write, in this order. All columns are written when
+this is None. An empty collection has no columns of its own, so
+for one the file holds just these names as its header.</p>
+          </div>
+        </li>
+    </ul>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+              <code><span title="KeyError">KeyError</span></code>
+            –
+          <div class="doc-md-description">
+            <p>If <code>columns</code> names a column which <code>to_dataframe()</code> doesn't
+have and the collection isn't empty.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+              <code><span title="TypeError">TypeError</span></code>
+            –
+          <div class="doc-md-description">
+            <p>If <code>sep</code> is longer than one character.</p>
           </div>
         </li>
     </ul>
