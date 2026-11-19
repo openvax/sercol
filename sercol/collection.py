@@ -151,9 +151,11 @@ class Collection(serializable.Serializable):
             for x in self
         ])
 
-    def to_csv(self, path, index=False):
+    def to_csv(self, path, index=False, *, sep=",", columns=None):
         """
-        Write ``to_dataframe()`` to a CSV file.
+        Write ``to_dataframe()`` to a delimited text file for other tools to
+        read. sercol has no matching reader; load the file with
+        ``pandas.read_csv``.
 
         Parameters
         ----------
@@ -162,8 +164,23 @@ class Collection(serializable.Serializable):
 
         index : bool
             Also write the row numbers as an unnamed first column.
+
+        sep : str
+            Single character which separates the fields, such as ``"\\t"``
+            for a tab-separated file.
+
+        columns : list of str, optional
+            Columns to write, in this order. All columns are written when
+            this is None.
+
+        Raises
+        ------
+        KeyError
+            If ``columns`` names a column which ``to_dataframe()`` doesn't
+            have.
         """
-        return self.to_dataframe().to_csv(path, index=index)
+        return self.to_dataframe().to_csv(
+            path, index=index, sep=sep, columns=columns)
 
     def clone_with_new_elements(
             self,
