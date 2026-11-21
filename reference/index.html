@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -549,6 +549,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sercol.Collection.__hash__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __hash__
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sercol.Collection.__eq__" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -879,6 +890,17 @@
     <span class="md-ellipsis">
       
         to_string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sercol.Collection.__hash__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __hash__
       
     </span>
   </a>
@@ -1583,6 +1605,43 @@ collection elements. Sources are listed in sorted order.</p>
         <p>Create a string representation of this collection, showing up to
 <code>limit</code> items (all of them when <code>limit</code> is None).</p>
 <p>Raises ValueError when <code>limit</code> is negative.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sercol.Collection.__hash__" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__hash__</span>
+
+
+<a href="#sercol.Collection.__hash__" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">__hash__</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Hash the class, the number of elements and the first and last few
+elements, so collections with different contents rarely share a
+hash while hashing a large collection stays cheap. Collections which
+differ only in their middle elements share a hash.</p>
+<p>An element which is itself a collection contributes only its class
+and its number of elements, so nested collections are cheap to hash.</p>
+<p>If hashing one of the sampled elements raises <code>TypeError</code>, as
+unhashable elements such as dicts and lists do, no element is used
+and only the class and the number of elements are hashed. Any other
+exception raised by an element's <code>__hash__</code> is passed on.</p>
+<p>Equal collections have equal hashes, with one exception: when an
+unhashable element of one collection equals a hashable element of
+the other, such as a <code>set</code> and a <code>frozenset</code> or a <code>bytearray</code>
+and <code>bytes</code>, the two collections are equal but hash differently.</p>
+<p>The hash is computed from the current elements. Changing <code>elements</code>
+while the collection is in a set or is a dict key makes it
+unreachable there, as with any mutable object which is hashed by
+value.</p>
 
 
     </div>
