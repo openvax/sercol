@@ -25,6 +25,9 @@ _OPTIONAL_STATE = ("distinct", "sort_key", "sources")
 # Elements which to_dataframe() puts in a single "value" column.
 _SCALAR_TYPES = (str, bytes, numbers.Number, type(None))
 
+# Number of elements from each end of a collection which __hash__() looks at.
+_HASHED_ELEMENTS_PER_END = 4
+
 
 class Collection(serializable.Serializable):
     """
@@ -368,7 +371,44 @@ class Collection(serializable.Serializable):
         return iter(self.elements)
 
     def __hash__(self):
-        return hash(len(self))
+        """
+        Hash the class, the number of elements and the first and last few
+        elements, so collections with different contents rarely share a
+        hash while hashing a large collection stays cheap. Collections which
+        differ only in their middle elements share a hash.
+
+        An element which is itself a collection contributes only its class
+        and its number of elements, so nested collections are cheap to hash.
+
+        If hashing one of the sampled elements raises ``TypeError``, as
+        unhashable elements such as dicts and lists do, no element is used
+        and only the class and the number of elements are hashed. Any other
+        exception raised by an element's ``__hash__`` is passed on.
+
+        Equal collections have equal hashes, with one exception: when an
+        unhashable element of one collection equals a hashable element of
+        the other, such as a ``set`` and a ``frozenset`` or a ``bytearray``
+        and ``bytes``, the two collections are equal but hash differently.
+
+        The hash is computed from the current elements. Changing ``elements``
+        while the collection is in a set or is a dict key makes it
+        unreachable there, as with any mutable object which is hashed by
+        value.
+        """
+        elements = self.elements
+        count = len(elements)
+        if count > 2 * _HASHED_ELEMENTS_PER_END:
+            elements = [
+                *elements[:_HASHED_ELEMENTS_PER_END],
+                *elements[-_HASHED_ELEMENTS_PER_END:]]
+        sampled = tuple(
+            (element.__class__, len(element))
+            if isinstance(element, Collection) else element
+            for element in elements)
+        try:
+            return hash((self.__class__, count, sampled))
+        except TypeError:
+            return hash((self.__class__, count))
 
     def __getitem__(self, idx):
         return self.elements[idx]
